@@ -48,7 +48,7 @@ H4X0R_B41T is built with modularity in mind. Customizing responses, headers, or 
 This honeypot isn’t just about misleading attackers—it's a tool for research. Use the logged interactions to study attack vectors, understand malicious behavior, and fortify your defenses.
 
 ### 3. **🎭 Humor Meets Security**
-Where else will you find an API that throws out headers like `X-Powered-By: Black Magic v1.0` and returns messages like *“This endpoint is currently on vacation. Please leave a message after the beep.”*? H4X0R_B41T mixes humor with high-tech deception, all while glowing in neon cyberpunk style.
+Where else will you find an API that throws out headers like `X-Powered-By: Black Magic v1.0` and returns messages like *“This endpoint is currently on vacation. Please leave a message after the beep.”*?.
 
 ## 🔧 How It Works
 1. **🛡️ Rate Limiting**: Defend against DDoS attacks by limiting the number of requests per IP using Redis.
