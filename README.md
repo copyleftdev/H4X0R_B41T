@@ -1,5 +1,3 @@
-\# 🕵️‍♂️ H4X0R_B41T: The Ultimate Honeypot 🕵️‍♀️
-
 ![H4X0R_B41T Troll](./troll.png)
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue?style=flat-square&logo=docker) 
