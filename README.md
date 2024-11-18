@@ -31,7 +31,7 @@ Cybersecurity isn't just about protection—it's about *distraction* and *disrup
 ### Running H4X0R_B41T
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/H4X0R_B41T.git
+   git clone https://github.com/copyleftdev/H4X0R_B41T.git
    cd H4X0R_B41T
    ```
 
@@ -39,10 +39,6 @@ Cybersecurity isn't just about protection—it's about *distraction* and *disrup
    ```bash
    docker-compose up --build
    ```
-
-3. **Access the Honeypot API**:
-   - Visit: `http://localhost:8080`
-   - Watch the neon-tinted chaos unfold as attackers get trolled and you gather valuable data!
 
 ## 🔍 What Makes It Special?
 ### 1. **🛠️ Modular Design**
