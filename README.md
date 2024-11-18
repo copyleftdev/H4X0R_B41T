@@ -6,7 +6,7 @@
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)
 ![Go](https://img.shields.io/badge/Go-1.19-blue?style=flat-square&logo=go)
 
-Welcome to **H4X0R_B41T**, a mischievously designed honeypot API that’s here to outwit, mislead, and ultimately entertain even the sneakiest of attackers. With neon-lit vibes and urban cyberpunk mischief, this honeypot transforms your API surface into a high-tech playground for curious hackers. Built with leetspeak, humor, and a touch of chaos, H4X0R_B41T lures cyber-intruders into a labyrinth of fake data, unpredictable responses, and humorous headers, all while keeping your real assets secure.
+Welcome to **H4X0R_B41T**, a mischievously designed honeypot API that’s here to outwit, mislead, and ultimately entertain even the sneakiest of attackers.
 
 ## 🌟 Why H4X0R_B41T Exists
 ### A Masterpiece of Deception
