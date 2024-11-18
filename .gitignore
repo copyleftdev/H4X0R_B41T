@@ -1,0 +1,49 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+$(APP_NAME)
+
+# Output of the Go build
+/h4x0r_b41t
+
+# Build directory
+/build/
+
+# Logs
+*.log
+
+# Coverage files
+*.out
+
+# Dependency directories
+vendor/
+
+# Go dependency files
+go.sum
+
+# IDE and editor configuration files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files and directories
+*.tmp
+*.temp
+*.swp
+*~
+
+# Docker and container-related files
+docker-compose.override.yml
+.env
+.env.local
+
+# Miscellaneous
+*.bak
+*.old
