@@ -11,20 +11,83 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
+// Redis client with connection pooling
 var (
-	// Redis client with connection pooling
-	redisClient = redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		PoolSize: 100, // Limit the pool size to avoid connection exhaustion
-	})
-	redisMutex = sync.Mutex{}
+	redisClient *redis.Client
+	redisMutex  sync.Mutex
+	logger      *zap.Logger
 )
 
-// Function to implement rate limiting with context for timeout
+// Color codes for terminal output
+const (
+	Reset   = "\033[0m"
+	Red     = "\033[31m"
+	Green   = "\033[32m"
+	Yellow  = "\033[33m"
+	Cyan    = "\033[36m"
+	Magenta = "\033[35m"
+)
+
+// Function to add color to log messages
+func coloredLogger(level string, message string) string {
+	switch level {
+	case "INFO":
+		return Green + message + Reset
+	case "DEBUG":
+		return Cyan + message + Reset
+	case "WARN":
+		return Yellow + message + Reset
+	case "ERROR":
+		return Red + message + Reset
+	case "ALERT":
+		return Magenta + message + Reset
+	default:
+		return message
+	}
+}
+
+// Initialize Zap Logger
+func initLogger() {
+	var err error
+	// Use the production configuration, which provides good defaults for performance
+	logger, err = zap.NewProduction()
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+	defer logger.Sync() // Flushes buffer, if any
+}
+
+func initRedis() {
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     "redis:6379", // Assuming Redis runs on 'redis' in Docker
+		PoolSize: 100,          // Limit the pool size to avoid connection exhaustion
+	})
+}
+
+func main() {
+	initLogger()
+	initRedis()
+
+	r := mux.NewRouter()
+	r.PathPrefix("/").HandlerFunc(dynamicEndpointHandler)
+
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         ":8080",
+		WriteTimeout: 5 * time.Second,  // Limit write duration
+		ReadTimeout:  5 * time.Second,  // Limit read duration
+		IdleTimeout:  15 * time.Second, // Keep-alive timeout
+	}
+
+	logger.Info(coloredLogger("INFO", "🏁 H4X0R_B41T running on port 8080 with Zap logging enabled"))
+	log.Fatal(srv.ListenAndServe())
+}
+
 func isRateLimited(ip string) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond) // Timeout to free up resources
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
 	redisMutex.Lock()
@@ -32,11 +95,12 @@ func isRateLimited(ip string) bool {
 
 	count, err := redisClient.Get(ctx, ip).Int()
 	if err != nil && err != redis.Nil {
-		log.Printf("Redis error: %v", err)
+		logger.Error(coloredLogger("ERROR", "❌ Redis error"), zap.String("ip", ip), zap.Error(err))
 		return false
 	}
 
-	if count >= 100 { // Example: Limit to 100 requests per minute
+	if count >= 100 {
+		logger.Warn(coloredLogger("WARN", "⚠️ Rate limit exceeded"), zap.String("ip", ip))
 		return true
 	}
 
@@ -45,36 +109,25 @@ func isRateLimited(ip string) bool {
 	return false
 }
 
-// Optimized catch-all handler for non-existent endpoints
 func dynamicEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	// Set a context with timeout to ensure handlers don’t hang
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-	defer cancel()
-
-	// Get the client's IP
 	ip := r.RemoteAddr
 	if isRateLimited(ip) {
-		// Redirect to an amusing website if rate limit is exceeded
 		http.Redirect(w, r, "https://www.pointerpointer.com", http.StatusSeeOther)
 		return
 	}
 
-	// Simulate delay for realism, but respect the context
-	select {
-	case <-time.After(1 * time.Second):
-		// Continue processing
-	case <-ctx.Done():
-		http.Error(w, "Request timed out", http.StatusGatewayTimeout)
-		return
-	}
+	time.Sleep(1 * time.Second)
 
-	// Add random trolley headers
+	logger.Info(coloredLogger("INFO", "🌐 Received request"),
+		zap.String("method", r.Method),
+		zap.String("url", r.URL.String()),
+		zap.String("ip", ip),
+	)
+
 	addTrolleyHeaders(w)
 
-	// Randomize status code
 	statusCode := getRandomStatusCode()
 
-	// Check if the request is attempting a common pattern (e.g., /api/v1/something)
 	if strings.HasPrefix(r.URL.Path, "/api/v1/") {
 		response := map[string]interface{}{
 			"message":  getRandomComicalResponse(),
@@ -84,35 +137,20 @@ func dynamicEndpointHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
+		logger.Info(coloredLogger("INFO", "✅ Responding with status code"),
+			zap.Int("statusCode", statusCode),
+			zap.String("endpoint", r.URL.Path),
+		)
 		json.NewEncoder(w).Encode(response)
 	} else {
-		// If the request doesn't match the API pattern, return a 404
 		http.NotFound(w, r)
+		logger.Warn(coloredLogger("WARN", "🔍 Endpoint not found"), zap.String("url", r.URL.String()))
 	}
 }
 
-// Function to generate fake data based on the requested endpoint
 func generateFakeData(endpoint string) map[string]string {
 	return map[string]string{
 		"info": "This is fake data generated for " + endpoint,
 		"hint": "Nope, nothing valuable here. Move along!",
 	}
-}
-
-func main() {
-	// Use Gorilla Mux for routing
-	r := mux.NewRouter()
-	r.PathPrefix("/").HandlerFunc(dynamicEndpointHandler)
-
-	// Create and configure the HTTP server
-	srv := &http.Server{
-		Handler:      r,
-		Addr:         ":8080",
-		WriteTimeout: 5 * time.Second,  // Limit write duration
-		ReadTimeout:  5 * time.Second,  // Limit read duration
-		IdleTimeout:  15 * time.Second, // Keep-alive timeout
-	}
-
-	log.Println("H4X0R_B41T running on port 8080 with optimizations for stability...")
-	log.Fatal(srv.ListenAndServe())
 }
